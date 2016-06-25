@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Stormlab</title>
+	<meta name="description" content="">
+	<meta name="author" content="Julfur">
+
+	<!-- HTML5 shim, for IE6-8 support of HTML elements -->
+	<!--[if lt IE 9]>
+		<script src="./theme/html5.js"></script>
+	<![endif]-->
+
+	<!-- Styles -->
+	<link href="./theme/bootstrap.min.css" rel="stylesheet">
+	<link href="./theme/local.css" rel="stylesheet">
+	<!-- <link href="./theme/pygments.css" rel="stylesheet"> -->
+    <link href="./theme/monokai.css" rel="stylesheet">
+    <link rel="stylesheet" href="./theme/tipuesearch/tipuesearch.css">
+    <link rel="icon" href="favicon.ico" />
+
+	<!-- Feeds -->
+
+
+
+
+</head>
+<body>
+	<div class="topbar">
+	  <div class="topbar-inner">
+		<div class="container-fluid">
+		  <a class="brand" href="./">Stormlab</a>
+			<ul class="nav">
+					<li ><a href="./category/books.html">Books</a></li>
+					<li class="active"><a href="./category/python.html">Python</a></li>
+			</ul>
+			<p class="pull-right">
+            <a href="./archives.html">[archives]</a> <a href="./tags.html">[tags]</a>
+            <form id="searchform" action="search.html" onsubmit="return (this.elements['q'].value.length > 0)">
+                <input id="searchbox" type="text" name="q" size="12" placeholder="Search">
+            </form></p>
+		</div>
+	  </div>
+	</div>
+
+	<div class="container-fluid">
+	  <div class="sidebar">
+		<div class="well">
+			<h3>Links</h3>
+			<ul>
+				<li><a href="http://python.org/">Python.org</a></li>
+				<li><a href="https://docs.python.org/2/">Python 2 Documentation</a></li>
+				<li><a href="https://docs.python.org/3.4/">Python 3 Documentation</a></li>
+				<li><a href="https://www.reddit.com/r/Python/">Reddit /r/python</a></li>
+				<li><a href="https://github.com/trending?l=python">Github Python trending</a></li>
+				<li><a href="http://getpelican.com/">Pelican</a></li>
+				<li><a href="http://jinja.pocoo.org/">Jinja2</a></li>
+			</ul>
+			<div class="social">
+			<h3>Social</h3>
+			<ul>
+				<li><a href="https://github.com/julfur">Github</a></li>
+			</ul>
+			</div>
+		</div>
+	  </div>
+	  <div class="content">
+	<div class='article'>
+		<div class="page-header"><h1>Flask with Gunicorn - Getting started</h1></div>
+		<div class="well small">Permalink: <a class="more" href="./flask-with-gunicorn-getting-started.html">2015-07-24</a>
+by <a class="url fn" href="./author/julfur.html">Julfur </a>
+ in <a href="./category/python.html">Python</a>
+tags: <a href="./tag/flask.html">Flask</a> <a href="./tag/gunicorn.html">Gunicorn</a> </div>
+		<div><p>This article will quickly explain how to serve your Flask app with gunicorn and Lighttpd.<br />
+I already had Lighttpd running on my raspberry pi serving basic html/php files and configured as a proxy to other services. The idea was to plug in a simple Flask app and this is what I will be explaining in this article.</p>
+<h2>Install Flask and Gunicorn</h2>
+<p>First, we need to install Flask with pip.<br />
+If you are not familiar with using <strong>pip</strong>, please read <a href="https://pip.pypa.io/en/stable/">pip documentation</a> before going forward.</p>
+<div class="highlight"><pre>    pip install flask
+</pre></div>
+
+
+<p><a href="http://gunicorn.org">Gunicorn</a> can be installed on debian wheezy through the repository, or you can install it with pip too.</p>
+<div class="highlight"><pre>    sudo apt-get install gunicorn
+</pre></div>
+
+
+<p>Gunicorn will quickly allow us to run an HTTP server hosting our Flask app.</p>
+<h2>Building a simple Flask app</h2>
+<p>The easiest way to build a simple Flask app is to use the code available on the official <a href="http://flask.pocoo.org/">Flask website</a>.
+First let's create our projet folder and the Flask python file:</p>
+<div class="highlight"><pre>    mkdir ~/flask-gunicorn
+    <span class="nb">cd</span> ~/flask-gunicorn
+    vi flask.py
+</pre></div>
+
+
+<p>This is the source code we will be using (the almighty 'Hello World!')</p>
+<div class="highlight"><pre>    <span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+    <span class="nd">@app.route</span><span class="p">(</span><span class="s">&quot;/flask&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">hello</span><span class="p">():</span>
+        <span class="k">return</span> <span class="s">&quot;Hello World!&quot;</span>
+
+    <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+
+
+<p>At this point, notice that our file is named <strong>flask.py</strong> and our app is called <strong>app</strong>.
+You can test this simple app by executing:</p>
+<div class="highlight"><pre>    python flask.py
+    <span class="o">(</span>Ctrl + c<span class="o">)</span> to cancel
+</pre></div>
+
+
+<h2>Configure Gunicorn</h2>
+<p>Gunicorn will allow us to serve our project using multiple workers.
+The best approach for running it as a service is to use a config file:</p>
+<div class="highlight"><pre>    vi gunicorn-cfg.py
+</pre></div>
+
+
+<p>The config file used is a simple python file:</p>
+<div class="highlight"><pre>    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+
+    <span class="n">bind</span> <span class="o">=</span> <span class="s">&quot;127.0.0.1:8000&quot;</span>
+    <span class="n">workers</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">pidfile</span><span class="o">=</span><span class="s">&#39;gunicorn_pid&#39;</span>
+    <span class="n">daemon</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">accesslog</span><span class="o">=</span><span class="s">&#39;gunicorn_access.log&#39;</span>
+    <span class="n">errorlog</span><span class="o">=</span><span class="s">&#39;gunicorn_error.log&#39;</span>
+    <span class="n">loglevel</span> <span class="o">=</span> <span class="s">&#39;debug&#39;</span>
+</pre></div>
+
+
+<ul>
+<li>bind : which interface and which port are used for binding.</li>
+<li>workers : number of workers to run.</li>
+<li>pidfile : easier to kill process when you need to restart gunicorn to commit changes to your Flask app.</li>
+<li>daemon : run Gunicorn as a daemon.</li>
+<li>accesslog : log what has been accessed.</li>
+<li>errorlog : log errors related to gunicorn daemon status.</li>
+<li>loglevel : debug while developping is always a plus.</li>
+</ul>
+<p>Once the config file is ready, you can start Gunicorn:</p>
+<div class="highlight"><pre>    gunicorn -c gunicorn-cfg.py flask:app
+</pre></div>
+
+
+<p>Let's quickly explain this command:  </p>
+<ul>
+<li>The first argument is used to declare a config file</li>
+<li><strong>flask:app</strong> means filename:flask_app_name</li>
+</ul>
+<p>In case you need to restart Gunicorn, just kill the process with the following command and start again:</p>
+<div class="highlight"><pre>    <span class="nb">kill</span> <span class="sb">`</span>cat gunicorn_pid<span class="sb">`</span>
+    gunicorn -c gunicorn-cfg.py flask:app
+</pre></div>
+
+
+<p>At this point, your Flask app is running with Gunicorn as a daemon.
+You should be able to see your Hello world!:</p>
+<div class="highlight"><pre>    curl http://127.0.0.1:8000/flask
+</pre></div>
+
+
+<p>We're still not satisfied since using port 8000 is clearly not the best.
+Let's take a look at our Lighttpd configuration.</p>
+<h2>Configure Lighttpd</h2>
+<p>In this paragraph I'm assuming you know how to install, run and configure Lighttpd.
+Let's edit the configuration file:</p>
+<div class="highlight"><pre>    sudo vi /etc/lighttpd/lighttpd.conf
+</pre></div>
+
+
+<p>We need to declare the Gunicorn service running on 127.0.0.1:8000 and map it to a path (we're not using the root directory since we assume Lighttpd is already serving something else)</p>
+<div class="highlight"><pre>   <span class="nv">$HTTP</span><span class="o">[</span><span class="s2">&quot;url&quot;</span><span class="o">]</span> <span class="o">=</span>~ <span class="s2">&quot;^/flask(</span><span class="nv">$|</span><span class="s2">/)&quot;</span> <span class="o">{</span>
+       proxy.server <span class="o">=</span> <span class="o">(</span> <span class="s2">&quot;&quot;</span> <span class="o">=</span>&gt; <span class="o">(</span> <span class="o">(</span>
+               <span class="s2">&quot;host&quot;</span> <span class="o">=</span>&gt; <span class="s2">&quot;127.0.0.1&quot;</span>,
+               <span class="s2">&quot;port&quot;</span> <span class="o">=</span>&gt; 8000
+       <span class="o">)</span> <span class="o">)</span> <span class="o">)</span>
+   <span class="o">}</span>
+</pre></div>
+
+
+<p>Save it and restart Lighttpd:</p>
+<div class="highlight"><pre>    sudo service lighttpd restart
+</pre></div>
+
+
+<p>You should now be able to see your Hello World! at this url:</p>
+<div class="highlight"><pre>   curl http://127.0.0.1/flask
+</pre></div></div>
+	</div>
+		<footer>
+		  <p>Powered by <a href="http://getpelican.com/">Pelican</a>. Theme based on <a href="http://twitter.github.com/bootstrap/">Twitter Bootstrap</a>.</p>
+		  <p>&copy; Julfur</p>
+		</footer>
+	  </div>
+
+	</div>
+</body>
+</html>

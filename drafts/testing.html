@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Stormlab</title>
+	<meta name="description" content="">
+	<meta name="author" content="Julfur">
+
+	<!-- HTML5 shim, for IE6-8 support of HTML elements -->
+	<!--[if lt IE 9]>
+		<script src="../theme/html5.js"></script>
+	<![endif]-->
+
+	<!-- Styles -->
+	<link href="../theme/bootstrap.min.css" rel="stylesheet">
+	<link href="../theme/local.css" rel="stylesheet">
+	<!-- <link href="../theme/pygments.css" rel="stylesheet"> -->
+    <link href="../theme/monokai.css" rel="stylesheet">
+    <link rel="stylesheet" href="../theme/tipuesearch/tipuesearch.css">
+    <link rel="icon" href="favicon.ico" />
+
+	<!-- Feeds -->
+
+
+
+
+</head>
+<body>
+	<div class="topbar">
+	  <div class="topbar-inner">
+		<div class="container-fluid">
+		  <a class="brand" href="../">Stormlab</a>
+			<ul class="nav">
+					<li ><a href="../category/books.html">Books</a></li>
+					<li class="active"><a href="../category/python.html">Python</a></li>
+			</ul>
+			<p class="pull-right">
+            <a href="../archives.html">[archives]</a> <a href="../tags.html">[tags]</a>
+            <form id="searchform" action="search.html" onsubmit="return (this.elements['q'].value.length > 0)">
+                <input id="searchbox" type="text" name="q" size="12" placeholder="Search">
+            </form></p>
+		</div>
+	  </div>
+	</div>
+
+	<div class="container-fluid">
+	  <div class="sidebar">
+		<div class="well">
+			<h3>Links</h3>
+			<ul>
+				<li><a href="http://python.org/">Python.org</a></li>
+				<li><a href="https://docs.python.org/2/">Python 2 Documentation</a></li>
+				<li><a href="https://docs.python.org/3.4/">Python 3 Documentation</a></li>
+				<li><a href="https://www.reddit.com/r/Python/">Reddit /r/python</a></li>
+				<li><a href="https://github.com/trending?l=python">Github Python trending</a></li>
+				<li><a href="http://getpelican.com/">Pelican</a></li>
+				<li><a href="http://jinja.pocoo.org/">Jinja2</a></li>
+			</ul>
+			<div class="social">
+			<h3>Social</h3>
+			<ul>
+				<li><a href="https://github.com/julfur">Github</a></li>
+			</ul>
+			</div>
+		</div>
+	  </div>
+	  <div class="content">
+	<div class='article'>
+		<div class="page-header"><h1>Python Highlight</h1></div>
+		<div class="well small">Permalink: <a class="more" href="../drafts/testing.html">2015-07-24</a>
+by <a class="url fn" href="../author/julfur.html">Julfur </a>
+ in <a href="../category/python.html">Python</a>
+tags: <a href="../tag/markdown.html">Markdown</a> </div>
+		<div><p>Python test:
+<img alt="Alt Text" src="../images/ocr_pi.png" /></p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">get_list</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;connect to sqlite DB and get list to watch&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">con</span><span class="p">:</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT name, MG_url, last_ch FROM list&quot;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span class="k">print</span><span class="p">(</span><span class="s">&quot;foo&quot;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Inside a list:</p>
+<ol>
+<li>
+<p>Here is some text. Let us try the ::: version of syntax highlighting.</p>
+<p>Only four spaces to indent:</p>
+<p>:::python
+print("foo")</p>
+<p>Using eight spaces to indent:</p>
+<div class="highlight"><pre><span class="k">print</span><span class="p">(</span><span class="s">&quot;foo&quot;</span><span class="p">)</span>
+</pre></div>
+
+
+</li>
+<li>
+<p>Now let us try the ``` version of syntax highlighting.</p>
+<p>Only four spaces to indent:</p>
+<p><code>python
+print("foo")</code></p>
+<p>Using eight spaces to indent:</p>
+<div class="highlight"><pre>```python
+print(&quot;foo&quot;)
+```
+</pre></div>
+
+
+</li>
+</ol>
+<p>End of test.</p></div>
+	</div>
+		<footer>
+		  <p>Powered by <a href="http://getpelican.com/">Pelican</a>. Theme based on <a href="http://twitter.github.com/bootstrap/">Twitter Bootstrap</a>.</p>
+		  <p>&copy; Julfur</p>
+		</footer>
+	  </div>
+
+	</div>
+</body>
+</html>

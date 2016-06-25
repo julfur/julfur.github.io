@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Stormlab</title><link href="https://stormlab.eu/" rel="alternate"></link><link href="https://stormlab.eu/feeds/tag_flask.atom.xml" rel="self"></link><id>https://stormlab.eu/</id><updated>2015-07-24T00:00:00+02:00</updated><entry><title>Flask with Gunicorn - Getting started</title><link href="https://stormlab.eu/flask-with-gunicorn-getting-started.html" rel="alternate"></link><updated>2015-07-24T00:00:00+02:00</updated><author><name>Julfur</name></author><id>tag:stormlab.eu,2015-07-24:flask-with-gunicorn-getting-started.html</id><summary type="html">&lt;p&gt;This article will quickly explain how to serve your Flask app with gunicorn and Lighttpd.&lt;br /&gt;
+I already had Lighttpd running on my raspberry pi serving basic html/php files and configured as a proxy to other services. The idea was to plug in a simple Flask app and this is what I will be explaining in this article.&lt;/p&gt;
+&lt;h2&gt;Install Flask and Gunicorn&lt;/h2&gt;
+&lt;p&gt;First, we need to install Flask with pip.&lt;br /&gt;
+If you are not familiar with using &lt;strong&gt;pip&lt;/strong&gt;, please read &lt;a href="https://pip.pypa.io/en/stable/"&gt;pip documentation&lt;/a&gt; before going forward.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    pip install flask
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;a href="http://gunicorn.org"&gt;Gunicorn&lt;/a&gt; can be installed on debian wheezy through the repository, or you can install it with pip too.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    sudo apt-get install gunicorn
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Gunicorn will quickly allow us to run an HTTP server hosting our Flask app.&lt;/p&gt;
+&lt;h2&gt;Building a simple Flask app&lt;/h2&gt;
+&lt;p&gt;The easiest way to build a simple Flask app is to use the code available on the official &lt;a href="http://flask.pocoo.org/"&gt;Flask website&lt;/a&gt;.
+First let's create our projet folder and the Flask python file:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    mkdir ~/flask-gunicorn
+    &lt;span class="nb"&gt;cd&lt;/span&gt; ~/flask-gunicorn
+    vi flask.py
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This is the source code we will be using (the almighty 'Hello World!')&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;flask&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Flask&lt;/span&gt;
+    &lt;span class="n"&gt;app&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Flask&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;__name__&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="nd"&gt;@app.route&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;/flask&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;hello&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Hello World!&amp;quot;&lt;/span&gt;
+
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;__name__&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;__main__&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="n"&gt;app&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;run&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;At this point, notice that our file is named &lt;strong&gt;flask.py&lt;/strong&gt; and our app is called &lt;strong&gt;app&lt;/strong&gt;.
+You can test this simple app by executing:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    python flask.py
+    &lt;span class="o"&gt;(&lt;/span&gt;Ctrl + c&lt;span class="o"&gt;)&lt;/span&gt; to cancel
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Configure Gunicorn&lt;/h2&gt;
+&lt;p&gt;Gunicorn will allow us to serve our project using multiple workers.
+The best approach for running it as a service is to use a config file:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    vi gunicorn-cfg.py
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The config file used is a simple python file:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;multiprocessing&lt;/span&gt;
+
+    &lt;span class="n"&gt;bind&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;127.0.0.1:8000&amp;quot;&lt;/span&gt;
+    &lt;span class="n"&gt;workers&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;multiprocessing&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cpu_count&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+    &lt;span class="n"&gt;pidfile&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;gunicorn_pid&amp;#39;&lt;/span&gt;
+    &lt;span class="n"&gt;daemon&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="bp"&gt;True&lt;/span&gt;
+    &lt;span class="n"&gt;accesslog&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;gunicorn_access.log&amp;#39;&lt;/span&gt;
+    &lt;span class="n"&gt;errorlog&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;gunicorn_error.log&amp;#39;&lt;/span&gt;
+    &lt;span class="n"&gt;loglevel&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;debug&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ul&gt;
+&lt;li&gt;bind : which interface and which port are used for binding.&lt;/li&gt;
+&lt;li&gt;workers : number of workers to run.&lt;/li&gt;
+&lt;li&gt;pidfile : easier to kill process when you need to restart gunicorn to commit changes to your Flask app.&lt;/li&gt;
+&lt;li&gt;daemon : run Gunicorn as a daemon.&lt;/li&gt;
+&lt;li&gt;accesslog : log what has been accessed.&lt;/li&gt;
+&lt;li&gt;errorlog : log errors related to gunicorn daemon status.&lt;/li&gt;
+&lt;li&gt;loglevel : debug while developping is always a plus.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Once the config file is ready, you can start Gunicorn:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    gunicorn -c gunicorn-cfg.py flask:app
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Let's quickly explain this command:  &lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The first argument is used to declare a config file&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;flask:app&lt;/strong&gt; means filename:flask_app_name&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In case you need to restart Gunicorn, just kill the process with the following command and start again:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    &lt;span class="nb"&gt;kill&lt;/span&gt; &lt;span class="sb"&gt;`&lt;/span&gt;cat gunicorn_pid&lt;span class="sb"&gt;`&lt;/span&gt;
+    gunicorn -c gunicorn-cfg.py flask:app
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;At this point, your Flask app is running with Gunicorn as a daemon.
+You should be able to see your Hello world!:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    curl http://127.0.0.1:8000/flask
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We're still not satisfied since using port 8000 is clearly not the best.
+Let's take a look at our Lighttpd configuration.&lt;/p&gt;
+&lt;h2&gt;Configure Lighttpd&lt;/h2&gt;
+&lt;p&gt;In this paragraph I'm assuming you know how to install, run and configure Lighttpd.
+Let's edit the configuration file:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    sudo vi /etc/lighttpd/lighttpd.conf
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We need to declare the Gunicorn service running on 127.0.0.1:8000 and map it to a path (we're not using the root directory since we assume Lighttpd is already serving something else)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;   &lt;span class="nv"&gt;$HTTP&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;url&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;~ &lt;span class="s2"&gt;&amp;quot;^/flask(&lt;/span&gt;&lt;span class="nv"&gt;$|&lt;/span&gt;&lt;span class="s2"&gt;/)&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+       proxy.server &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&amp;gt; &lt;span class="o"&gt;(&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;
+               &lt;span class="s2"&gt;&amp;quot;host&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&amp;gt; &lt;span class="s2"&gt;&amp;quot;127.0.0.1&amp;quot;&lt;/span&gt;,
+               &lt;span class="s2"&gt;&amp;quot;port&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&amp;gt; 8000
+       &lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;)&lt;/span&gt;
+   &lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Save it and restart Lighttpd:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    sudo service lighttpd restart
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You should now be able to see your Hello World! at this url:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;   curl http://127.0.0.1/flask
+&lt;/pre&gt;&lt;/div&gt;</summary><category term="Flask"></category><category term="Gunicorn"></category></entry></feed>
